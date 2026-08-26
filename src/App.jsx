@@ -4,6 +4,7 @@ import Toolbar from './components/Toolbar'
 import NoteInput from './components/NoteInput'
 import NoteGrid from './components/NoteGrid'
 import AuthScreen from './components/AuthScreen'
+import Loader from './components/Loader'
 import { AppProvider, useApp } from './context/AppContext'
 
 function useDebounced(value, delay) {
@@ -69,11 +70,7 @@ function NotesApp() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
-      </div>
-    )
+    return <Loader label="Loading your notes..." />
   }
 
   if (!user) {

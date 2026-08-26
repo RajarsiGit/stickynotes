@@ -81,6 +81,8 @@ export default function NoteCard({
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [showLabelPicker, setShowLabelPicker] = useState(false)
   const cardRef = useRef(null)
+  const modalRef = useRef(null)
+  const titleInputRef = useRef(null)
 
   useEffect(() => {
     setTitle(note.title)
@@ -98,8 +100,10 @@ export default function NoteCard({
 
   useEffect(() => {
     if (!editing) return
+    titleInputRef.current?.focus()
+
     function handleClick(e) {
-      if (cardRef.current && !cardRef.current.contains(e.target)) closeEdit()
+      if (modalRef.current && !modalRef.current.contains(e.target)) closeEdit()
     }
     function handleKey(e) {
       if (e.key === 'Escape') closeEdit()
@@ -113,8 +117,15 @@ export default function NoteCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing, title, content])
 
-  const actionRow = (
-    <div className="mt-2 flex flex-wrap items-center gap-0.5 opacity-100 transition-opacity focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100">
+  function renderActionRow({ alwaysVisible = false } = {}) {
+    return (
+    <div
+      className={
+        alwaysVisible
+          ? 'flex flex-wrap items-center gap-0.5'
+          : 'mt-2 flex flex-wrap items-center gap-0.5 opacity-100 transition-opacity focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100'
+      }
+    >
       <IconButton title={note.pinned ? 'Unpin' : 'Pin'} onClick={() => onTogglePin(note.id)}>
         {ICONS.pin(note.pinned)}
       </IconButton>
@@ -170,31 +181,25 @@ export default function NoteCard({
         </>
       )}
     </div>
+    )
+  }
+
+  const labelChips = note.labels.length > 0 && (
+    <div className="mt-2 flex flex-wrap gap-1">
+      {note.labels.map((l) => (
+        <span key={l} className="rounded-full bg-black/5 px-2 py-0.5 text-xs text-gray-600">
+          {l}
+        </span>
+      ))}
+    </div>
   )
 
   return (
-    <div
-      ref={cardRef}
-      className={`group mb-3 break-inside-avoid rounded-lg border border-gray-200 p-3 shadow-sm transition-shadow hover:shadow-md ${note.color}`}
-    >
-      {editing ? (
-        <div>
-          <input
-            autoFocus
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Title"
-            className="w-full bg-transparent text-sm font-medium outline-none"
-          />
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Note..."
-            rows={4}
-            className="mt-1 w-full resize-none bg-transparent text-sm outline-none"
-          />
-        </div>
-      ) : (
+    <>
+      <div
+        ref={cardRef}
+        className={`group mb-3 break-inside-avoid rounded-lg border border-gray-200 p-3 shadow-sm transition-shadow hover:shadow-md ${note.color}`}
+      >
         <div
           onClick={() => !note.trashed && setEditing(true)}
           onKeyDown={(e) => {
@@ -212,19 +217,47 @@ export default function NoteCard({
             <p className="mt-1 line-clamp-6 whitespace-pre-wrap text-sm text-gray-700">{note.content}</p>
           )}
         </div>
-      )}
 
-      {note.labels.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1">
-          {note.labels.map((l) => (
-            <span key={l} className="rounded-full bg-black/5 px-2 py-0.5 text-xs text-gray-600">
-              {l}
-            </span>
-          ))}
+        {labelChips}
+
+        {renderActionRow()}
+      </div>
+
+      {editing && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4">
+          <div
+            ref={modalRef}
+            className={`flex max-h-[80vh] w-full max-w-lg flex-col rounded-lg border border-gray-200 p-4 shadow-2xl ${note.color}`}
+          >
+            <input
+              ref={titleInputRef}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title"
+              className="w-full bg-transparent text-base font-medium outline-none"
+            />
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Note..."
+              className="mt-2 min-h-[240px] flex-1 resize-none bg-transparent text-sm outline-none"
+            />
+
+            {labelChips}
+
+            <div className="mt-2 flex items-center justify-between border-t border-black/5 pt-2">
+              {renderActionRow({ alwaysVisible: true })}
+              <button
+                type="button"
+                onClick={closeEdit}
+                className="rounded px-3 py-1.5 text-sm text-gray-700 hover:bg-black/5"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
-
-      {actionRow}
-    </div>
+    </>
   )
 }
