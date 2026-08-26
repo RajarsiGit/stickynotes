@@ -3,7 +3,8 @@ import Sidebar from './components/Sidebar'
 import Toolbar from './components/Toolbar'
 import NoteInput from './components/NoteInput'
 import NoteGrid from './components/NoteGrid'
-import { useNotes } from './hooks/useNotes'
+import AuthScreen from './components/AuthScreen'
+import { AppProvider, useApp } from './context/AppContext'
 
 function useDebounced(value, delay) {
   const [debounced, setDebounced] = useState(value)
@@ -14,9 +15,9 @@ function useDebounced(value, delay) {
   return debounced
 }
 
-function App() {
-  const notesApi = useNotes()
-  const { notes, labels } = notesApi
+function NotesApp() {
+  const app = useApp()
+  const { user, notes, labels, loading, loadData, logout } = app
   const [view, setView] = useState('notes')
   const [activeLabel, setActiveLabel] = useState(null)
   const [search, setSearch] = useState('')
@@ -51,20 +52,32 @@ function App() {
       )
     }
 
-    return [...list].sort((a, b) => b.updatedAt - a.updatedAt)
+    return [...list].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
   }, [notes, view, activeLabel, debouncedSearch])
 
   const cardActions = {
-    onUpdate: notesApi.updateNote,
-    onDelete: notesApi.deleteNote,
-    onRestore: notesApi.restoreNote,
-    onPermanentDelete: notesApi.permanentDelete,
-    onTogglePin: notesApi.togglePin,
-    onToggleArchive: notesApi.toggleArchive,
-    onSetColor: notesApi.setColor,
-    onAddLabel: notesApi.addLabel,
-    onRemoveLabel: notesApi.removeLabel,
+    onUpdate: app.updateNote,
+    onDelete: app.deleteNote,
+    onRestore: app.restoreNote,
+    onPermanentDelete: app.permanentDelete,
+    onTogglePin: app.togglePin,
+    onToggleArchive: app.toggleArchive,
+    onSetColor: app.setColor,
+    onAddLabel: app.addLabel,
+    onRemoveLabel: app.removeLabel,
     onCreateLabel: () => {},
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <AuthScreen onAuthSuccess={loadData} />
   }
 
   return (
@@ -77,15 +90,17 @@ function App() {
           labels={labels}
           onSelectView={selectView}
           onSelectLabel={selectLabel}
-          onRenameLabel={(oldLabel, newLabel) => notesApi.renameLabelEverywhere(oldLabel, newLabel)}
+          onRenameLabel={(oldLabel, newLabel) => app.renameLabelEverywhere(oldLabel, newLabel)}
           onDeleteLabel={(label) => {
-            notesApi.removeLabelEverywhere(label)
+            app.removeLabelEverywhere(label)
             if (view === 'label' && activeLabel === label) selectView('notes')
           }}
+          user={user}
+          onLogout={logout}
         />
         <main className="flex-1 px-4 py-6 sm:px-6">
           {view === 'notes' && (
-            <NoteInput onAdd={notesApi.addNote} allLabels={labels} onCreateLabel={() => {}} />
+            <NoteInput onAdd={app.addNote} allLabels={labels} onCreateLabel={() => {}} />
           )}
           <NoteGrid
             notes={filteredNotes}
@@ -99,4 +114,10 @@ function App() {
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <AppProvider>
+      <NotesApp />
+    </AppProvider>
+  )
+}

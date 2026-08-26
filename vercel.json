@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/auth/login",
+      "destination": "/api/auth?path=login"
+    },
+    {
+      "source": "/api/auth/logout",
+      "destination": "/api/auth?path=logout"
+    },
+    {
+      "source": "/api/auth/me",
+      "destination": "/api/auth?path=me"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "devCommand": "npm run dev -- --port 5173"
+}

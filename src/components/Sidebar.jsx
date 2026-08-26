@@ -14,11 +14,13 @@ export default function Sidebar({
   onSelectLabel,
   onRenameLabel,
   onDeleteLabel,
+  user,
+  onLogout,
 }) {
   const [menuLabel, setMenuLabel] = useState(null)
 
   return (
-    <nav className="w-56 shrink-0 border-r border-gray-200 py-2">
+    <nav className="flex w-56 shrink-0 flex-col border-r border-gray-200 py-2">
       {NAV_ITEMS.map((item) => (
         <button
           key={item.key}
@@ -84,6 +86,21 @@ export default function Sidebar({
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {user && (
+        <div className="mt-auto flex items-center justify-between border-t border-gray-200 px-6 py-3">
+          <span className="truncate text-xs text-gray-500" title={user.name}>
+            {user.name}
+          </span>
+          <button
+            type="button"
+            onClick={onLogout}
+            className="shrink-0 text-xs text-gray-500 hover:text-gray-900"
+          >
+            Sign out
+          </button>
         </div>
       )}
     </nav>
