@@ -16,16 +16,33 @@ export default function Sidebar({
   onDeleteLabel,
   user,
   onLogout,
+  open,
+  onClose,
 }) {
   const [menuLabel, setMenuLabel] = useState(null)
 
   return (
-    <nav className="flex w-56 shrink-0 flex-col border-r border-gray-200 py-2">
+    <>
+      {open && (
+        <div
+          className="fixed inset-0 z-20 bg-black/30 md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+      <nav
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 shrink-0 -translate-x-full flex-col border-r border-gray-200 bg-white py-2 transition-transform duration-200 ease-out md:static md:z-auto md:w-56 md:translate-x-0 ${
+          open ? 'translate-x-0' : ''
+        }`}
+      >
       {NAV_ITEMS.map((item) => (
         <button
           key={item.key}
           type="button"
-          onClick={() => onSelectView(item.key)}
+          onClick={() => {
+            onSelectView(item.key)
+            onClose?.()
+          }}
           className={`flex w-full items-center rounded-r-full px-6 py-2 text-left text-sm ${
             view === item.key ? 'bg-yellow-100 font-medium text-gray-900' : 'text-gray-700 hover:bg-gray-100'
           }`}
@@ -41,7 +58,10 @@ export default function Sidebar({
             <div key={label} className="group relative flex items-center">
               <button
                 type="button"
-                onClick={() => onSelectLabel(label)}
+                onClick={() => {
+                  onSelectLabel(label)
+                  onClose?.()
+                }}
                 className={`flex w-full items-center rounded-r-full px-6 py-2 text-left text-sm ${
                   view === 'label' && activeLabel === label
                     ? 'bg-yellow-100 font-medium text-gray-900'
@@ -103,6 +123,7 @@ export default function Sidebar({
           </button>
         </div>
       )}
-    </nav>
+      </nav>
+    </>
   )
 }
