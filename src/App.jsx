@@ -22,6 +22,7 @@ function NotesApp() {
   const [view, setView] = useState('notes')
   const [activeLabel, setActiveLabel] = useState(null)
   const [search, setSearch] = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const debouncedSearch = useDebounced(search, 250)
 
   function selectView(next) {
@@ -79,7 +80,7 @@ function NotesApp() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 text-gray-900">
-      <Toolbar search={search} onSearchChange={setSearch} />
+      <Toolbar search={search} onSearchChange={setSearch} onMenuClick={() => setSidebarOpen((o) => !o)} />
       <div className="flex flex-1">
         <Sidebar
           view={view}
@@ -94,6 +95,8 @@ function NotesApp() {
           }}
           user={user}
           onLogout={logout}
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
         />
         <main className="flex-1 px-4 py-6 sm:px-6">
           {view === 'notes' && (
